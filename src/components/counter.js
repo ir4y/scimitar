@@ -10,6 +10,7 @@ const model = {
 
 function Counter(props) {
     const cursors = props.cursors;
+    console.log(`render counter#${cursors.id}`);
     return (
         <div>
             <h3>{cursors.title}</h3>

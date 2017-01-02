@@ -28,6 +28,12 @@ class TreeStateWrapper extends Component {
         });
     }
 
+    shouldComponentUpdate(nextProps, nextState){
+        const isPropsEqual = _.isEqual(this.props.parentProps, nextProps.parentProps);
+        const isStateEqual = _.isEqual(this.state, nextState);
+        return !(isPropsEqual && isStateEqual);
+    }
+
     render() {
         const Component = this.props.component;
         return (

@@ -63,7 +63,6 @@ function People(props) {
                     :
                         null
                 }
-
             </p>
         </div>
     );

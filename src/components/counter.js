@@ -3,7 +3,7 @@ import schema from '../libs/state';
 import { guid } from '../libs/utils';
 
 const model = {
-    id: guid(),
+    id: (c) => c.set(guid()),
     title: 'simple counter',
     value: 0,
 };

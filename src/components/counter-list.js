@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import schema from '../libs/state';
 import { guid } from '../libs/utils';
-import Counter, { model as counterModel } from './counter';
+import Counter from './counter';
 
 const model = {
     counters : [],

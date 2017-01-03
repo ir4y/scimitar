@@ -55,22 +55,16 @@ class TreeStateWrapper extends Component {
 }
 
 
-export default function schema(model) {
-    return (component) => {
-        return (props) => {
-            const tree =  props.tree;
-            const parentProps = { ...props };
-            parentProps.tree= undefined;
-            return (
-                <TreeStateWrapper
-                    tree={tree}
-                    schema={model}
-                    component={component}
-                    parentProps={parentProps}
-                />
-            );
-        };
-    };
+export default (model) => (component) => (props) => {
+    const tree = props.tree;
+    const parentProps = { ...props };
+    delete parentProps.tree;
+    return (
+        <TreeStateWrapper
+            tree={tree}
+            schema={model}
+            component={component}
+            parentProps={parentProps}
+        />
+    );
 }
-
-

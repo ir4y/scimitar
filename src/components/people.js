@@ -21,43 +21,46 @@ async function getPeople(cursor, url = 'http://swapi.co/api/people/') {
 }
 
 const model = {
-    people: getPeople,
+    tree: {
+        people: getPeople,
+    },
 };
 
 function People(props) {
-    const people = props.cursors.people;
-    if (people.status === 'Loading') {
+    const people = props.tree.people;
+    const status = people.status.get();
+    if (status === 'Loading') {
         return <h3>Loading</h3>;
     }
-    if (people.status === 'Failure') {
+    if (status === 'Failure') {
         return (
             <div>
                 <h3>Error</h3>
-                <p>{people.error}</p>
+                <p>{people.error.get()}</p>
             </div>
         );
     }
     return (
         <div>
             <ul>
-                {_.map(people.data.results, (person) =>
+                {_.map(people.data.results.get(), (person) =>
                     (<li key={person.url}>{person.name}</li>)
                 )}
             </ul>
             <p>
                 {
-                        people.data.previous
+                        people.data.previous.get()
                     ?
-                        <button onClick={() => getPeople(props.cursors.peopleCursor, people.data.previous)}>
+                        <button onClick={() => getPeople(people, people.data.previous.get())}>
                             previous
                         </button>
                     :
                         null
                 }
                 {
-                        people.data.next
+                        people.data.next.get()
                     ?
-                        <button onClick={() => getPeople(props.cursors.peopleCursor, people.data.next)}>
+                        <button onClick={() => getPeople(people, people.data.next.get())}>
                             next
                         </button>
                     :

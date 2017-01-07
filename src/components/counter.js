@@ -3,22 +3,24 @@ import schema from '../libs/state';
 import { guid } from '../libs/utils';
 
 const model = {
-    id: (c) => c.set(guid()),
-    title: 'simple counter',
-    value: 0,
+    tree: {
+        id: (c) => c.set(guid()),
+        title: 'simple counter',
+        value: 0,
+    },
 };
 
 function Counter(props) {
-    const cursors = props.cursors;
-    console.log(`render counter#${cursors.id}`);
+    const counter = props.tree;
+    console.log(`render counter#${counter.id.get()}`);
     return (
         <div>
-            <h3>{cursors.title}</h3>
-            <button onClick={() => cursors.value += 1}>
+            <h3>{counter.title.get()}</h3>
+            <button onClick={() => counter.value.apply((v) => v + 1)}>
                 +
             </button>
-            {cursors.value}
-            <button onClick={() => cursors.value -= 1}>
+            {counter.value.get()}
+            <button onClick={() => counter.value.apply((v) => v - 1)}>
                 -
             </button>
         </div>

@@ -5,18 +5,22 @@ import { guid } from '../libs/utils';
 import Counter from './counter';
 
 const model = {
-    counters : [],
+    tree: {
+        counters: [],
+    },
 };
 
 function CounterList(props) {
-    const countersCursor = props.cursors.countersCursor;
+    const countersCursor = props.tree.counters;
     return (
         <div>
             {countersCursor.map((cursor) => {
                 const value = cursor.get();
                 const id = _.isEmpty(value) ? guid() : value.id;
-                return <Counter key={id} tree={cursor} />
-             })}
+                return (
+                    <Counter key={id} tree={cursor} />
+                );
+            })}
             <button onClick={() => countersCursor.push({})}>+</button>
         </div>
     );

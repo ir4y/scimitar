@@ -1,5 +1,36 @@
 import React, { Component } from 'react';
+import Baobab from 'baobab';
 import _ from 'lodash';
+
+function patchCursor(cursor, keys) {
+    const descriptor = (newCursor) => ({
+        configurable: true,
+        enumerable: false,
+        get: () => patchCursor(newCursor),
+    });
+    const value = cursor.get();
+    if (_.isArray(value)) {
+        return cursor;
+    }
+    _.each(keys || _.keys(cursor.get()), (path) =>
+        Object.defineProperty(cursor, path, descriptor(cursor.select(path)))
+    );
+    return cursor;
+}
+
+function initCursor(cursor, schema) {
+    if (_.isFunction(schema)) {
+        if (_.isEmpty(cursor.get())) {
+            schema(cursor);
+        }
+    } else if (_.isObject(schema) && !_.isArray(schema)) {
+        _.each(schema, (childSchema, path) => {
+            initCursor(cursor.select(path), childSchema);
+        });
+    } else if (_.isEmpty(cursor.get())) {
+        cursor.set(schema);
+    }
+}
 
 class TreeStateWrapper extends Component {
     constructor(props) {
@@ -9,26 +40,16 @@ class TreeStateWrapper extends Component {
     }
 
     componentWillMount() {
-        this.cursors = {};
-        _.each(this.props.schema, (value, key) => {
-            const cursor = this.props.tree.select(key);
-            if (_.isEmpty(cursor.get())) {
-                if (_.isFunction(value)) {
-                    value(cursor);
-                } else {
-                    cursor.set(value);
+        _.each(this.props.parentProps, (prop, propName) => {
+            if (prop instanceof Baobab.Cursor) {
+                const schema =  this.props.schema[propName];
+                if (schema) {
+                    initCursor(prop, schema);
                 }
-                cursor.tree.commit();
+                prop.tree.commit();
+                prop.on('update', this.updateGenerationIndex);
+                patchCursor(prop);
             }
-            cursor.on('update', this.updateGenerationIndex);
-            const descriptor = {
-                configurable: false,
-                enumerable: false,
-                get: () => cursor.get(),
-                set: (v) => cursor.set(v),
-            };
-            Object.defineProperty(this.cursors, key, descriptor);
-            this.cursors[`${key}Cursor`] = cursor;
         });
     }
 
@@ -39,7 +60,11 @@ class TreeStateWrapper extends Component {
     }
 
     componentWillUnmount() {
-        _.each(this.cursors, (cursor) => cursor.off('update', this.updateGenerationIndex));
+        _.each(this.props.parentProps, (cursor) => {
+            if (cursor instanceof Baobab.Cursor) {
+                cursor.off('update', this.updateGenerationIndex);
+            }
+        });
     }
 
     updateGenerationIndex() {
@@ -49,22 +74,18 @@ class TreeStateWrapper extends Component {
     render() {
         const Component = this.props.component;
         return (
-            <Component cursors={this.cursors} {...this.props.parentProps} />
+            <Component {...this.props.parentProps} />
         );
     }
 }
 
 
 export default (model) => (component) => (props) => {
-    const tree = props.tree;
-    const parentProps = { ...props };
-    delete parentProps.tree;
     return (
         <TreeStateWrapper
-            tree={tree}
             schema={model}
             component={component}
-            parentProps={parentProps}
+            parentProps={props}
         />
     );
 }

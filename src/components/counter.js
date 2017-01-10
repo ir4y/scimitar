@@ -10,12 +10,17 @@ const model = {
     },
 };
 
+function Input({cursor}) {
+    return <input value={cursor.get()} onChange={(event) => cursor.set(event.target.value)}/>
+}
+
 function Counter(props) {
     const counter = props.tree;
     console.log(`render counter#${counter.id.get()}`);
     return (
         <div>
             <h3>{counter.title.get()}</h3>
+            <Input cursor={counter.title} />
             <button onClick={() => counter.value.apply((v) => v + 1)}>
                 +
             </button>
@@ -28,3 +33,4 @@ function Counter(props) {
 }
 
 export default schema(model)(Counter);
+ 

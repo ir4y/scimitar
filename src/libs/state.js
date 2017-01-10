@@ -20,14 +20,14 @@ function patchCursor(cursor, keys) {
 
 function initCursor(cursor, schema) {
     if (_.isFunction(schema)) {
-        if (_.isEmpty(cursor.get())) {
+        if (!cursor.exists()) {
             schema(cursor);
         }
     } else if (_.isObject(schema) && !_.isArray(schema)) {
         _.each(schema, (childSchema, path) => {
             initCursor(cursor.select(path), childSchema);
         });
-    } else if (_.isEmpty(cursor.get())) {
+    } else if (!cursor.exists()){
         cursor.set(schema);
     }
 }

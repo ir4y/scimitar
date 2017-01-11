@@ -16,7 +16,7 @@ export default function () {
                 To get started, edit <code>src/App.js</code> and save to reload.
             </p>
             <CounterList tree={tree.select('counter')} />
-            <People tree={tree.select('starWars')} />
+            <People tree={tree.select('starWars')} token='some text token' />
         </div>
     );
 }

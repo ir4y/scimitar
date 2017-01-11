@@ -20,10 +20,13 @@ async function getPeople(cursor, url = 'http://swapi.co/api/people/') {
     }
 }
 
-const model = {
-    tree: {
-        people: getPeople,
-    },
+const model = (props) => {
+    console.log(`i am funciton from props:${_.keys(props)}`);
+    return {
+        tree: {
+            people: getPeople,
+        },
+    };
 };
 
 function People(props) {
@@ -49,7 +52,7 @@ function People(props) {
             </ul>
             <p>
                 {
-                        people.data.previous.get()
+                    people.data.previous.get()
                     ?
                         <button onClick={() => getPeople(people, people.data.previous.get())}>
                             previous
@@ -58,7 +61,7 @@ function People(props) {
                         null
                 }
                 {
-                        people.data.next.get()
+                    people.data.next.get()
                     ?
                         <button onClick={() => getPeople(people, people.data.next.get())}>
                             next

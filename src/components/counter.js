@@ -10,8 +10,10 @@ const model = {
     },
 };
 
-function Input({cursor}) {
-    return <input value={cursor.get()} onChange={(event) => cursor.set(event.target.value)}/>
+function Input({ cursor }) {
+    return (
+        <input value={cursor.get()} onChange={(event) => cursor.set(event.target.value)} />
+    );
 }
 
 function Counter(props) {
@@ -33,4 +35,3 @@ function Counter(props) {
 }
 
 export default schema(model)(Counter);
- 

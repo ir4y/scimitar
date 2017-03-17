@@ -8,16 +8,12 @@ function compareProps(oldProps, newProps) {
     if (oldKeys.length !== newKeys.length) {
         return false;
     }
-    for (let index = 0; index < newKeys.length; index += 1) {
-        let key = oldKeys[index];
-        if (oldProps[key] instanceof Baobab.Cursor) {
-            continue;
+    return !_.some(oldProps, (oldProp, key) => {
+        if (oldProp instanceof Baobab.Cursor) {
+            return oldProp.path !== newProps[key].path;
         }
-        if (!_.isEqual(oldProps[key], newProps[key])) {
-            return false;
-        }
-    }
-    return true;
+        return !_.isEqual(oldProp, newProps[key]);
+    });
 }
 
 function initCursor(cursor, schema) {
@@ -25,7 +21,7 @@ function initCursor(cursor, schema) {
         if (!cursor.exists()) {
             schema(cursor);
         }
-    } else if (_.isObject(schema) && !_.isArray(schema)) {
+    } else if (_.isPlainObject(schema) && !_.isArray(schema)) {
         _.each(schema, (childSchema, path) => {
             initCursor(cursor.select(path), childSchema);
         });
@@ -39,18 +35,23 @@ class TreeStateWrapper extends Component {
         super(props);
         this.state = { generationIndex: 1 };
         this.updateGenerationIndex = this.updateGenerationIndex.bind(this);
+        this.handleNewCursor = this.handleNewCursor.bind(this);
+    }
+
+    handleNewCursor(cursor, cursorName) {
+        const schema = this.props.schema[cursorName];
+        if (schema) {
+            initCursor(cursor, schema);
+            cursor.tree.commit();
+        }
+        cursor.on('update', this.updateGenerationIndex);
     }
 
     componentWillMount() {
         _.each(this.props.parentProps, (prop, propName) => {
             if (prop instanceof Baobab.Cursor) {
-                const schema = this.props.schema[propName];
-                if (schema) {
-                    initCursor(prop, schema);
-                    prop.tree.commit();
-                }
-                prop.on('update', this.updateGenerationIndex);
-            }
+                this.handleNewCursor(prop, propName);
+           }
         });
     }
 
@@ -60,12 +61,7 @@ class TreeStateWrapper extends Component {
                 const oldProp = this.props.parentProps[propName];
                 if (oldProp.path !== prop.path) {
                     oldProp.off('update', this.updateGenerationIndex);
-                    const schema = this.props.schema[propName];
-                    if (schema) {
-                        initCursor(prop, schema);
-                        prop.tree.commit();
-                    }
-                    prop.on('update', this.updateGenerationIndex);
+                    this.handleNewCursor(prop, propName);
                 }
             }
         });
@@ -98,19 +94,17 @@ class TreeStateWrapper extends Component {
 }
 
 
-export default (model) => (component) => (props) => {
-    let schema;
-    if (_.isFunction(model)) {
-        schema = model(props);
-    } else {
-        schema = model;
+export default (model) => (component) => {
+    function _Component(props, context) {
+        const schema = _.isFunction(model) ? model(props, context) : model;
+        return (
+            <TreeStateWrapper
+                schema={schema}
+                component={component}
+                parentProps={props}
+            />
+        );
     }
-
-    return (
-        <TreeStateWrapper
-            schema={schema}
-            component={component}
-            parentProps={props}
-        />
-    );
+    _Component.contextTypes = component.contextTypes;
+    return _Component;
 };

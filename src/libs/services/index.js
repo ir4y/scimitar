@@ -1,0 +1,1 @@
+export { peopleService } from './people';

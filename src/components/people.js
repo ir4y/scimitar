@@ -1,33 +1,20 @@
 import React from 'react';
 import _ from 'lodash';
 import schema from '../libs/state';
-
-async function getPeople(cursor, url = 'http://swapi.co/api/people/') {
-    cursor.set({ status: 'Loading' });
-
-    try {
-        let response = await fetch(url);
-        let data = await response.json();
-        cursor.set({
-            data,
-            status: 'Succeed',
-        });
-    } catch (error) {
-        cursor.set({
-            error,
-            status: 'Failure',
-        });
-    }
-}
+import { peopleService } from '../libs/services';
 
 const model = (props) => {
     console.log(`i am funciton from props:${_.keys(props)}`);
     return {
         tree: {
-            people: getPeople,
+            people: peopleService,
         },
     };
 };
+
+function getExtraUrlParam(url) {
+    return `?${url.split('?')[1]}`;
+}
 
 function People(props) {
     const people = props.tree.people;
@@ -54,7 +41,7 @@ function People(props) {
                 {
                     people.data.previous.get()
                     ?
-                        <button onClick={() => getPeople(people, people.data.previous.get())}>
+                        <button onClick={() => peopleService(people, getExtraUrlParam(people.data.previous.get()))}>
                             previous
                         </button>
                     :
@@ -63,7 +50,7 @@ function People(props) {
                 {
                     people.data.next.get()
                     ?
-                        <button onClick={() => getPeople(people, people.data.next.get())}>
+                        <button onClick={() => peopleService(people, getExtraUrlParam(people.data.next.get()))}>
                             next
                         </button>
                     :

@@ -1,13 +1,11 @@
 import React from 'react';
 import _ from 'lodash';
 import schema from '../libs/state';
-import { peopleService } from '../libs/services';
 
-const model = (props) => {
-    console.log(`i am funciton from props:${_.keys(props)}`);
+const model = (props, context) => {
     return {
         tree: {
-            people: peopleService,
+            people: context.services.peopleService,
         },
     };
 };
@@ -16,9 +14,11 @@ function getExtraUrlParam(url) {
     return `?${url.split('?')[1]}`;
 }
 
-function People(props) {
+function People(props, context) {
     const people = props.tree.people;
     const status = people.status.get();
+    const peopleService = context.services.peopleService;
+
     if (status === 'Loading') {
         return <h3>Loading</h3>;
     }
@@ -62,5 +62,10 @@ function People(props) {
 }
 
 People.displayName = 'People';
+People.contextTypes = {
+    services: React.PropTypes.shape({
+        peopleService: React.PropTypes.func.isRequired,
+    }),
+};
 
 export default schema(model)(People);

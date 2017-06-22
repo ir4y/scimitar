@@ -2,8 +2,12 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import tree from './libs/tree';
+import serviceProviderFactory from './libs/service-provider';
+import services  from './services';
 import CounterList from './components/counter-list';
 import People from './components/people';
+
+const ServiceProvider = serviceProviderFactory(services);
 
 export default function () {
     return (
@@ -15,8 +19,12 @@ export default function () {
             <p className="App-intro">
                 To get started, edit <code>src/App.js</code> and save to reload.
             </p>
-            <CounterList tree={tree.select('counter')} />
-            <People tree={tree.select('starWars')} token='some text token' />
+            <CounterList tree={tree.counter} />
+            <ServiceProvider
+                token='some text token'
+            >
+                <People tree={tree.starWars} />
+            </ServiceProvider>
         </div>
     );
 }

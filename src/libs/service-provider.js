@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import _ from 'lodash';
 
 function initServices(token, services) {
@@ -10,41 +9,44 @@ function initServices(token, services) {
     return initializedServices;
 }
 
+export default function serviceProviderFactory(services) {
 
-export class ServiceProvider extends React.Component {
-    constructor(props) {
-        super(props);
-        this.services = initServices(props.token, props.services);
-    }
-    getChildContext() {
-        return {
-            services: this.services,
-        };
+    class ServiceProvider extends React.Component {
+        constructor(props) {
+            super(props);
+            this.services = initServices(props.token, services);
+        }
+        getChildContext() {
+            return {
+                services: this.services,
+            };
+        }
+
+        componentWillReceiveProps(nextProps) {
+            this.services = initServices(nextProps.token);
+        }
+
+        render() {
+            const { token, ...props } = this.props; // eslint-disable-line
+            return (
+                <div {...props} />
+            );
+        }
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.services = initServices(nextProps.token);
-    }
+    let servicesShape = {};
 
-    render() {
-        const { token, ...props } = this.props; // eslint-disable-line
-        return (
-            <View {...props} />
-        );
-    }
+    _.each(services, (service, name) => {
+        servicesShape[name] = React.PropTypes.func.isRequired;
+    });
+
+    ServiceProvider.childContextTypes = {
+        services: React.PropTypes.shape(servicesShape),
+    };
+
+    ServiceProvider.propTypes = {
+        token: React.PropTypes.string.isRequired,
+    };
+
+    return ServiceProvider;
 }
-
-let servicesShape = {};
-
-_.each(services, (service, name) => {
-    servicesShape[name] = React.PropTypes.func.isRequired;
-});
-
-ServiceProvider.childContextTypes = {
-    services: React.PropTypes.shape(servicesShape),
-};
-
-ServiceProvider.propTypes = {
-    token: React.PropTypes.string.isRequired,
-    services: React.PropTypes.shape(servicesShape),
-};
